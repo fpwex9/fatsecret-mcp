@@ -1,444 +1,240 @@
-# FatSecret MCP Server
+# FatSecret MCP Server (Extended)
 
-A Model Context Protocol (MCP) server that provides access to the FatSecret nutrition database API with full 3-Legged OAuth authentication support.
+An extended [Model Context Protocol](https://modelcontextprotocol.io/) server for the [FatSecret Platform API](https://platform.fatsecret.com/). Provides **25 tools** for comprehensive food diary management via Claude Desktop, Claude Code, or any MCP-compatible client.
 
-## Features
+> Fork of [fcoury/fatsecret-mcp](https://github.com/fcoury/fatsecret-mcp) with 17 additional API methods, bug fixes, and meal type mapping.
 
-- **Complete OAuth 1.0a Implementation**: Full 3-legged OAuth flow for user authentication
-- **Food Database Access**: Search and retrieve detailed nutrition information
-- **Recipe Database**: Search for recipes and get detailed cooking instructions
-- **User Data Management**: Access user food diaries and add food entries
-- **Secure Credential Storage**: Encrypted storage of API credentials and tokens
+## What's New (vs Original)
 
-## Getting Started
+- **17 new tools**: diary editing/deletion, monthly nutrition summary, favorites, saved meals CRUD, weight logging, barcode search, autocomplete
+- **Bug fixes**: correct `food_entry_name` / `saved_meal_item_name` params, `number_of_units` instead of `quantity`, `snack` mapped to `other` for API compatibility
+- Full OAuth 1.0a support (unchanged from original)
 
-### Prerequisites
+## All 25 Tools
 
-- Node.js (v14 or higher)
-- npm or yarn
-- A FatSecret developer account
+### Authentication (3)
 
-### Installation
+| Tool | Description |
+|------|-------------|
+| `set_credentials` | Set FatSecret API credentials (Client ID and Client Secret) |
+| `start_oauth_flow` | Start the 3-legged OAuth flow to get user authorization |
+| `complete_oauth_flow` | Complete the OAuth flow with the authorization code/verifier |
+
+### Food Database (4)
+
+| Tool | Description |
+|------|-------------|
+| `search_foods` | Search for foods in the FatSecret database |
+| `get_food` | Get detailed nutrition info for a specific food |
+| `autocomplete_foods` | Get food name suggestions as you type (max 10 results) |
+| `barcode_search` | Search for a food by barcode (EAN/UPC 13-digit GTIN) |
+
+### Recipes (2)
+
+| Tool | Description |
+|------|-------------|
+| `search_recipes` | Search for recipes |
+| `get_recipe` | Get detailed recipe info including ingredients and directions |
+
+### Food Diary (5)
+
+| Tool | Description |
+|------|-------------|
+| `get_user_food_entries` | Get diary entries for a specific date |
+| `add_food_entry` | Add a food entry to the diary |
+| `edit_food_entry` | Edit an existing entry (change quantity, serving, or meal) |
+| `delete_food_entry` | Delete a food entry from the diary |
+| `get_food_entries_month` | Get summarized daily nutrition (cal, protein, fat, carbs) for a month |
+
+### Quick Search (3)
+
+| Tool | Description |
+|------|-------------|
+| `get_most_eaten` | Get the user's most frequently eaten foods |
+| `get_recently_eaten` | Get the user's recently eaten foods |
+| `check_auth_status` | Check if the user is authenticated |
+
+### Favorites (3)
+
+| Tool | Description |
+|------|-------------|
+| `get_favorites` | Get the user's favorite foods list |
+| `add_favorite` | Add a food to favorites |
+| `delete_favorite` | Remove a food from favorites |
+
+### Saved Meals (6)
+
+| Tool | Description |
+|------|-------------|
+| `get_saved_meals` | Get all saved meals |
+| `create_saved_meal` | Create a new saved meal |
+| `delete_saved_meal` | Delete a saved meal |
+| `get_saved_meal_items` | Get all food items in a saved meal |
+| `add_saved_meal_item` | Add a food item to a saved meal |
+| `delete_saved_meal_item` | Remove a food item from a saved meal |
+
+### Weight & Profile (3)
+
+| Tool | Description |
+|------|-------------|
+| `get_user_profile` | Get the authenticated user's profile |
+| `get_weight_month` | Get weight entries for a specific month |
+| `update_weight` | Record weight for a specific date (within 2 days of today) |
+
+## Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/fatsecret-mcp.git
+git clone https://github.com/fpwex9/fatsecret-mcp.git
 cd fatsecret-mcp
-
-# Install dependencies
 npm install
-
-# Build the TypeScript
 npm run build
 ```
 
 ## Setup
 
-### 1. Get FatSecret API Credentials
+### 1. Get API Credentials
 
-1. Visit the [FatSecret Platform](https://platform.fatsecret.com/)
-2. Create a developer account and register your application
-3. Note down your **Client ID** and **Client Secret**
+1. Go to [FatSecret Platform](https://platform.fatsecret.com/)
+2. Create a developer account and register an application
+3. Note your **Consumer Key** (Client ID) and **Consumer Secret** (Client Secret)
+4. These are OAuth 1.0a credentials (not OAuth 2.0)
 
-### 2. Configure the MCP Server
+### 2. Connect to Claude Desktop
 
-The server needs to be configured in your MCP client (like Claude Desktop). Add this to your MCP configuration:
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
 ```json
 {
   "mcpServers": {
     "fatsecret": {
       "command": "node",
-      "args": ["path/to/fatsecret-mcp-server/dist/index.js"]
+      "args": ["/absolute/path/to/fatsecret-mcp/dist/index.js"]
     }
   }
 }
 ```
 
-### 3. Authentication Process
-
-#### Option 1: Using the OAuth Console Utility (Recommended)
-
-The easiest way to authenticate is using the included OAuth console utility:
+### 3. Connect to Claude Code CLI
 
 ```bash
-# Make sure you've built the project first
-npm run build
-
-# Run the OAuth console utility
-node dist/cli.js
+claude mcp add --scope user fatsecret node /absolute/path/to/fatsecret-mcp/dist/index.js
 ```
 
-This interactive utility will:
-1. Ask for your Client ID and Client Secret
-2. Save them securely in `~/.fatsecret-mcp-config.json`
-3. Guide you through the OAuth flow:
-   - Opens your browser to the FatSecret authorization page
-   - Prompts you to paste the verifier code after authorization
-   - Saves the access tokens for future use
+### 4. Authenticate
 
-#### Option 2: Manual Authentication via MCP Tools
+In Claude, use the MCP tools:
 
-If you prefer to authenticate through the MCP interface (e.g., in Claude):
+1. `set_credentials` with your Client ID and Client Secret
+2. `start_oauth_flow` (callbackUrl: "oob")
+3. Visit the authorization URL, log in, click Allow, copy the verifier code
+4. `complete_oauth_flow` with requestToken, requestTokenSecret, and verifier
 
-1. **Set your API credentials:**
-   ```
-   Use tool: set_credentials
-   Parameters:
-   - clientId: "your_client_id_here"
-   - clientSecret: "your_client_secret_here"
-   ```
+Credentials and tokens are saved in `~/.fatsecret-mcp-config.json`.
 
-2. **Start the OAuth flow:**
-   ```
-   Use tool: start_oauth_flow
-   Parameters:
-   - callbackUrl: "oob" (for out-of-band authentication)
-   ```
+## Usage Examples
 
-3. **Visit the authorization URL** provided in the response:
-   - Log in to your FatSecret account (or create one)
-   - Click "Allow" to authorize the application
-   - Copy the verifier code shown on the page
-
-4. **Complete the OAuth flow:**
-   ```
-   Use tool: complete_oauth_flow
-   Parameters:
-   - requestToken: [from step 2 response]
-   - requestTokenSecret: [from step 2 response]
-   - verifier: [the code you copied from the authorization page]
-   ```
-
-#### Option 3: Using Environment Variables
-
-You can also provide credentials via environment variables:
-
-```bash
-# Create a .env file in the project root
-CLIENT_ID=your_client_id_here
-CLIENT_SECRET=your_client_secret_here
-
-# The server will automatically load these on startup
-```
-
-Note: You'll still need to complete the OAuth flow for user-specific operations.
-
-## Usage
-
-### 1. Set API Credentials
-
-First, set your FatSecret API credentials:
+### Log a meal
 
 ```
-Use the set_credentials tool with your Client ID and Client Secret
+"I had 200g of chicken breast and 150g of rice for lunch"
+
+Claude will:
+1. search_foods("chicken breast") → get serving_id for 100g
+2. search_foods("white rice cooked") → get serving_id for 100g
+3. add_food_entry for each (quantity=2 and 1.5 respectively, mealType="lunch")
 ```
 
-### 2. Authenticate a User (3-Legged OAuth)
-
-For user-specific operations, you need to complete the OAuth flow:
+### Edit a diary entry
 
 ```
-1. Use start_oauth_flow tool (with callback URL or "oob" for out-of-band)
-2. Visit the provided authorization URL
-3. Authorize the application and get the verifier code
-4. Use complete_oauth_flow tool with the request token, secret, and verifier
+"Change my chicken to 150g"
+
+Claude will:
+1. get_user_food_entries for today
+2. find the chicken entry → food_entry_id
+3. edit_food_entry(foodEntryId, quantity=1.5)
 ```
 
-### 3. Use the API
+### Monthly nutrition summary
 
-Once authenticated, you can use all available tools:
+```
+"How did my protein look this month?"
 
-#### Food Search and Information
-
-- `search_foods`: Search for foods in the database
-- `get_food`: Get detailed nutrition information for a specific food
-
-#### Recipe Search and Information
-
-- `search_recipes`: Search for recipes
-- `get_recipe`: Get detailed recipe information including ingredients and instructions
-
-#### User Data (Requires Authentication)
-
-- `get_user_profile`: Get the authenticated user's profile
-- `get_user_food_entries`: Get food diary entries for a specific date
-- `add_food_entry`: Add a food entry to the user's diary
-
-#### Utility
-
-- `check_auth_status`: Check current authentication status
-
-## Available Tools
-
-### Authentication Tools
-
-#### `set_credentials`
-
-Set your FatSecret API credentials.
-
-**Parameters:**
-
-- `clientId` (string, required): Your FatSecret Client ID
-- `clientSecret` (string, required): Your FatSecret Client Secret
-
-#### `start_oauth_flow`
-
-Start the 3-legged OAuth flow.
-
-**Parameters:**
-
-- `callbackUrl` (string, optional): OAuth callback URL (default: "oob")
-
-#### `complete_oauth_flow`
-
-Complete the OAuth flow with authorization.
-
-**Parameters:**
-
-- `requestToken` (string, required): Request token from start_oauth_flow
-- `requestTokenSecret` (string, required): Request token secret from start_oauth_flow
-- `verifier` (string, required): OAuth verifier from authorization
-
-#### `check_auth_status`
-
-Check current authentication status.
-
-### Food Database Tools
-
-#### `search_foods`
-
-Search for foods in the FatSecret database.
-
-**Parameters:**
-
-- `searchExpression` (string, required): Search term
-- `pageNumber` (number, optional): Page number (default: 0)
-- `maxResults` (number, optional): Max results per page (default: 20)
-
-#### `get_food`
-
-Get detailed information about a specific food.
-
-**Parameters:**
-
-- `foodId` (string, required): FatSecret food ID
-
-### Recipe Database Tools
-
-#### `search_recipes`
-
-Search for recipes in the FatSecret database.
-
-**Parameters:**
-
-- `searchExpression` (string, required): Search term
-- `pageNumber` (number, optional): Page number (default: 0)
-- `maxResults` (number, optional): Max results per page (default: 20)
-
-#### `get_recipe`
-
-Get detailed information about a specific recipe.
-
-**Parameters:**
-
-- `recipeId` (string, required): FatSecret recipe ID
-
-### User Data Tools (Requires Authentication)
-
-#### `get_user_profile`
-
-Get the authenticated user's profile information.
-
-#### `get_user_food_entries`
-
-Get user's food diary entries for a specific date.
-
-**Parameters:**
-
-- `date` (string, optional): Date in YYYY-MM-DD format (default: today)
-
-#### `add_food_entry`
-
-Add a food entry to the user's diary.
-
-**Parameters:**
-
-- `foodId` (string, required): FatSecret food ID
-- `servingId` (string, required): Serving ID for the food
-- `quantity` (number, required): Quantity of the serving
-- `mealType` (string, required): Meal type (breakfast, lunch, dinner, snack)
-- `date` (string, optional): Date in YYYY-MM-DD format (default: today)
-
-## Example Workflow
-
-1. **Setup Credentials:**
-
-   ```
-   Tool: set_credentials
-   - clientId: "your_client_id"
-   - clientSecret: "your_client_secret"
-   ```
-
-2. **Search for Foods:**
-
-   ```
-   Tool: search_foods
-   - searchExpression: "chicken breast"
-   ```
-
-3. **Get Food Details:**
-
-   ```
-   Tool: get_food
-   - foodId: "12345"
-   ```
-
-4. **Authenticate User (if needed):**
-
-   ```
-   Tool: start_oauth_flow
-   - callbackUrl: "oob"
-
-   # Follow the authorization URL, then:
-
-   Tool: complete_oauth_flow
-   - requestToken: "from_start_oauth_flow"
-   - requestTokenSecret: "from_start_oauth_flow"
-   - verifier: "from_authorization_page"
-   ```
-
-5. **Add Food to Diary:**
-   ```
-   Tool: add_food_entry
-   - foodId: "12345"
-   - servingId: "67890"
-   - quantity: 1
-   - mealType: "lunch"
-   ```
-
-## Configuration Storage
-
-The server stores configuration (credentials and tokens) in `~/.fatsecret-mcp-config.json`. This file contains:
-
-- API credentials (Client ID and Secret)
-- OAuth access tokens (when authenticated)
-- User ID (when authenticated)
-
-## Security Notes
-
-- Credentials are stored locally in your home directory
-- OAuth tokens are securely managed using proper HMAC-SHA1 signing
-- All API communications use HTTPS
-- The server implements proper OAuth 1.0a security measures
-
-## API Reference
-
-This server implements the FatSecret Platform API. For detailed API documentation, visit:
-
-- [FatSecret Platform API Documentation](https://platform.fatsecret.com/docs/guides)
-- [OAuth 1.0a Specification](https://tools.ietf.org/html/rfc5849)
-
-## Error Handling
-
-The server provides detailed error messages for common issues:
-
-- Missing or invalid credentials
-- OAuth flow errors
-- API rate limiting
-- Network connectivity issues
-- Invalid parameters
-
-## Testing
-
-### Testing from the Command Line
-
-The project includes several test utilities:
-
-#### 1. Interactive Test Tool
-
-```bash
-# Run the interactive test menu
-node test-interactive.js
+Claude will:
+1. get_food_entries_month(date="2026-02-01")
+2. Show daily protein totals in a table
 ```
 
-This provides a menu-driven interface to test all MCP tools.
+### Repeat yesterday's breakfast
 
-#### 2. Date Conversion Test
+```
+"Log the same breakfast as yesterday"
 
-```bash
-# Test the date conversion logic
-node test-date-conversion.js
+Claude will:
+1. get_user_food_entries(date=yesterday) → filter breakfast entries
+2. add_food_entry for each item on today's date
 ```
 
-Verifies that dates are correctly converted to FatSecret's "days since epoch" format.
+### Search by barcode
 
-#### 3. Direct JSON-RPC Testing
+```
+"Look up barcode 0049000006346"
 
-```bash
-# Send test messages via pipe
-node test-mcp.js | node dist/index.js
+Claude will:
+1. barcode_search(barcode="0049000006346") → food_id
+2. get_food(food_id) → Coca-Cola Classic, 140 kcal
 ```
 
-### Testing in Claude Desktop
+## API Tier Notes
 
-1. Restart Claude Desktop after configuring the MCP server
-2. Look for "fatsecret" in the available tools
-3. Start by using `check_auth_status` to verify the connection
+- **Basic** (free): 5,000 calls/day, US market only
+- **Premier Free**: Unlimited calls, US market + extra markets at 50% discount. Includes barcode search and autocomplete.
+- **Premier** (paid): 56+ countries, custom food creation (`food.create.v2`)
+
+The `food.create.v2` method (create custom foods) is **not available** on Premier Free. Barcode search works best with US UPC codes; European EAN codes may not return results on non-Premier plans.
+
+## Configuration
+
+Credentials are stored in `~/.fatsecret-mcp-config.json`:
+
+```json
+{
+  "clientId": "your_consumer_key",
+  "clientSecret": "your_consumer_secret",
+  "accessToken": "saved_after_oauth",
+  "accessTokenSecret": "saved_after_oauth"
+}
+```
 
 ## Troubleshooting
 
-### Common Issues
-
-#### "Invalid integer value: date"
-- The FatSecret API expects dates as days since epoch (1970-01-01)
-- The server automatically converts YYYY-MM-DD format dates
-- If you get this error, ensure you're using the latest version
-
-#### OAuth Authentication Fails
-- Verify your Client ID and Client Secret are correct
-- Ensure you're using the correct URLs (authentication.fatsecret.com for OAuth)
-- Check that you're copying the entire verifier code from the authorization page
-
-#### Server Not Found in Claude
-- Ensure the path in your MCP configuration is absolute, not relative
-- Verify the server was built successfully (`npm run build`)
-- Check Claude's logs for any error messages
-
-#### "User authentication required"
-- Complete the OAuth flow using either the CLI utility or MCP tools
-- Check authentication status with `check_auth_status` tool
-- Tokens are saved in `~/.fatsecret-mcp-config.json`
+| Problem | Solution |
+|---------|----------|
+| "Invalid signature" on OAuth | Make sure you're using OAuth 1.0a Consumer Secret, not OAuth 2.0 Client Secret |
+| "Invalid Type: meal is invalid" | Use "breakfast", "lunch", "dinner", or "snack" (mapped to "other" internally) |
+| "Missing required parameter: food_entry_name" | Update to latest version (fixed in this fork) |
+| Barcode returns food_id=0 | Product not in database for your API tier/region |
+| Server not found in Claude | Use absolute path in config, verify `npm run build` succeeded |
+| "User authentication required" | Complete the OAuth flow first, check with `check_auth_status` |
 
 ## Development
 
-To modify or extend the server:
-
 ```bash
-# Install dependencies
 npm install
-
-# Build and run
-npm run build
-npm start
-
-# Development mode with auto-rebuild
-npm run dev
+npm run build    # compile TypeScript
+npm start        # run the server
 ```
 
-### Project Structure
+All tools are in `src/index.ts` in the `FatSecretMCPServer` class. Pattern for adding new tools:
 
-```
-fatsecret-mcp/
-├── src/
-│   ├── index.ts        # Main MCP server implementation
-│   └── cli.ts          # OAuth console utility
-├── dist/               # Compiled JavaScript files
-├── test-*.js           # Test utilities
-├── package.json
-├── tsconfig.json
-└── README.md
-```
+1. Add tool definition in `ListToolsRequestSchema` handler
+2. Add case in `CallToolRequestSchema` switch
+3. Implement handler method using `makeApiRequest()`
+
+## Credits
+
+- Original: [fcoury/fatsecret-mcp](https://github.com/fcoury/fatsecret-mcp)
+- API: [FatSecret Platform API](https://platform.fatsecret.com/)
 
 ## License
 
