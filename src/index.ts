@@ -98,6 +98,11 @@ class FatSecretMCPServer {
     return daysSinceEpoch.toString();
   }
 
+  private mapMealType(meal: string): string {
+    // FatSecret API uses "other" instead of "snack"
+    return meal === "snack" ? "other" : meal;
+  }
+
   private percentEncode(str: string): string {
     return encodeURIComponent(str)
       .replace(
@@ -518,6 +523,10 @@ class FatSecretMCPServer {
                 date: {
                   type: "string",
                   description: "Date in YYYY-MM-DD format (default: today)",
+                },
+                foodEntryName: {
+                  type: "string",
+                  description: "A name for the food entry (defaults to food_id if not provided)",
                 },
               },
               required: ["foodId", "servingId", "quantity", "mealType"],
@@ -1236,12 +1245,13 @@ class FatSecretMCPServer {
 
     try {
       const date = this.dateToFatSecretFormat(args.date);
-      const params = {
+      const params: Record<string, string> = {
         method: "food_entry.create",
         food_id: args.foodId,
+        food_entry_name: args.foodEntryName || args.foodId,
         serving_id: args.servingId,
-        quantity: args.quantity.toString(),
-        meal: args.mealType,
+        number_of_units: args.quantity.toString(),
+        meal: this.mapMealType(args.mealType),
         date: date,
         format: "json",
       };
@@ -1317,7 +1327,7 @@ class FatSecretMCPServer {
 
       if (args.servingId) params.serving_id = args.servingId;
       if (args.quantity !== undefined) params.number_of_units = args.quantity.toString();
-      if (args.mealType) params.meal = args.mealType;
+      if (args.mealType) params.meal = this.mapMealType(args.mealType);
 
       const response = await this.makeApiRequest(
         "POST",
@@ -1681,7 +1691,7 @@ class FatSecretMCPServer {
       };
 
       if (args.savedMealDescription) params.saved_meal_description = args.savedMealDescription;
-      if (args.mealType) params.meal = args.mealType;
+      if (args.mealType) params.meal = this.mapMealType(args.mealType);
 
       const response = await this.makeApiRequest(
         "POST",
@@ -1801,6 +1811,7 @@ class FatSecretMCPServer {
         method: "saved_meal_item.add",
         saved_meal_id: args.savedMealId,
         food_id: args.foodId,
+        saved_meal_item_name: args.foodEntryName || args.foodId,
         serving_id: args.servingId,
         number_of_units: args.quantity.toString(),
         format: "json",
