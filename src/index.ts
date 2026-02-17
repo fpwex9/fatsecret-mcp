@@ -98,6 +98,14 @@ class FatSecretMCPServer {
     return daysSinceEpoch.toString();
   }
 
+  private getCurrentDateInfo(): string {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   private mapMealType(meal: string): string {
     // FatSecret API uses "other" instead of "snack"
     return meal === "snack" ? "other" : meal;
@@ -492,7 +500,7 @@ class FatSecretMCPServer {
               properties: {
                 date: {
                   type: "string",
-                  description: "Date in YYYY-MM-DD format (default: today)",
+                  description: `Date in YYYY-MM-DD format (default: today, ${this.getCurrentDateInfo()}). Use this date for 'today', calculate for 'yesterday' etc.`,
                 },
               },
             },
@@ -522,7 +530,7 @@ class FatSecretMCPServer {
                 },
                 date: {
                   type: "string",
-                  description: "Date in YYYY-MM-DD format (default: today)",
+                  description: `Date in YYYY-MM-DD format (default: today, ${this.getCurrentDateInfo()}). Use this date for 'today', calculate for 'yesterday' etc.`,
                 },
                 foodEntryName: {
                   type: "string",
@@ -548,7 +556,7 @@ class FatSecretMCPServer {
               properties: {
                 date: {
                   type: "string",
-                  description: "Date in YYYY-MM-DD format to specify the month (default: current month)",
+                  description: `Date in YYYY-MM-DD format to specify the month (default: current month, ${this.getCurrentDateInfo()})`,
                 },
               },
             },
@@ -603,7 +611,7 @@ class FatSecretMCPServer {
               properties: {
                 date: {
                   type: "string",
-                  description: "Date in YYYY-MM-DD format to specify the month (default: current month)",
+                  description: `Date in YYYY-MM-DD format to specify the month (default: current month, ${this.getCurrentDateInfo()})`,
                 },
               },
             },
@@ -774,7 +782,7 @@ class FatSecretMCPServer {
                 },
                 date: {
                   type: "string",
-                  description: "Date in YYYY-MM-DD format (default: today, must be within 2 days of today)",
+                  description: `Date in YYYY-MM-DD format (default: today, ${this.getCurrentDateInfo()}). Must be within 2 days of today.`,
                 },
                 comment: {
                   type: "string",
