@@ -544,6 +544,265 @@ class FatSecretMCPServer {
               },
             },
           },
+          // Priority 1: Diary edit/delete/month
+          {
+            name: "edit_food_entry",
+            description: "Edit an existing food diary entry (change quantity, serving, or meal)",
+            inputSchema: {
+              type: "object",
+              properties: {
+                foodEntryId: {
+                  type: "string",
+                  description: "The food_entry_id to edit (from get_user_food_entries)",
+                },
+                servingId: {
+                  type: "string",
+                  description: "New serving ID (optional, keep current if not provided)",
+                },
+                quantity: {
+                  type: "number",
+                  description: "New quantity of the serving (optional)",
+                },
+                mealType: {
+                  type: "string",
+                  description: "New meal type (optional)",
+                  enum: ["breakfast", "lunch", "dinner", "snack"],
+                },
+              },
+              required: ["foodEntryId"],
+            },
+          },
+          {
+            name: "delete_food_entry",
+            description: "Delete a food entry from the user's diary",
+            inputSchema: {
+              type: "object",
+              properties: {
+                foodEntryId: {
+                  type: "string",
+                  description: "The food_entry_id to delete (from get_user_food_entries)",
+                },
+              },
+              required: ["foodEntryId"],
+            },
+          },
+          {
+            name: "get_food_entries_month",
+            description: "Get summarized daily nutrition data for a month (calories, protein, fat, carbs per day)",
+            inputSchema: {
+              type: "object",
+              properties: {
+                date: {
+                  type: "string",
+                  description: "Date in YYYY-MM-DD format to specify the month (default: current month)",
+                },
+              },
+            },
+          },
+          // Priority 2: Search helpers and favorites
+          {
+            name: "get_most_eaten",
+            description: "Get the user's most frequently eaten foods",
+            inputSchema: {
+              type: "object",
+              properties: {},
+            },
+          },
+          {
+            name: "get_recently_eaten",
+            description: "Get the user's recently eaten foods",
+            inputSchema: {
+              type: "object",
+              properties: {},
+            },
+          },
+          {
+            name: "get_favorites",
+            description: "Get the user's favorite foods list",
+            inputSchema: {
+              type: "object",
+              properties: {},
+            },
+          },
+          {
+            name: "add_favorite",
+            description: "Add a food to the user's favorites",
+            inputSchema: {
+              type: "object",
+              properties: {
+                foodId: {
+                  type: "string",
+                  description: "The FatSecret food ID to add to favorites",
+                },
+              },
+              required: ["foodId"],
+            },
+          },
+          {
+            name: "delete_favorite",
+            description: "Remove a food from the user's favorites",
+            inputSchema: {
+              type: "object",
+              properties: {
+                foodId: {
+                  type: "string",
+                  description: "The FatSecret food ID to remove from favorites",
+                },
+              },
+              required: ["foodId"],
+            },
+          },
+          // Priority 3: Saved meals
+          {
+            name: "get_saved_meals",
+            description: "Get all saved meals for the user",
+            inputSchema: {
+              type: "object",
+              properties: {},
+            },
+          },
+          {
+            name: "create_saved_meal",
+            description: "Create a new saved meal",
+            inputSchema: {
+              type: "object",
+              properties: {
+                savedMealName: {
+                  type: "string",
+                  description: "Name for the saved meal",
+                },
+                savedMealDescription: {
+                  type: "string",
+                  description: "Description for the saved meal (optional)",
+                },
+                mealType: {
+                  type: "string",
+                  description: "Meal type (optional)",
+                  enum: ["breakfast", "lunch", "dinner", "snack"],
+                },
+              },
+              required: ["savedMealName"],
+            },
+          },
+          {
+            name: "delete_saved_meal",
+            description: "Delete a saved meal",
+            inputSchema: {
+              type: "object",
+              properties: {
+                savedMealId: {
+                  type: "string",
+                  description: "The saved_meal_id to delete",
+                },
+              },
+              required: ["savedMealId"],
+            },
+          },
+          {
+            name: "get_saved_meal_items",
+            description: "Get all food items in a saved meal",
+            inputSchema: {
+              type: "object",
+              properties: {
+                savedMealId: {
+                  type: "string",
+                  description: "The saved_meal_id to get items for",
+                },
+              },
+              required: ["savedMealId"],
+            },
+          },
+          {
+            name: "add_saved_meal_item",
+            description: "Add a food item to a saved meal",
+            inputSchema: {
+              type: "object",
+              properties: {
+                savedMealId: {
+                  type: "string",
+                  description: "The saved_meal_id to add item to",
+                },
+                foodId: {
+                  type: "string",
+                  description: "The FatSecret food ID",
+                },
+                servingId: {
+                  type: "string",
+                  description: "The serving ID for the food",
+                },
+                quantity: {
+                  type: "number",
+                  description: "Quantity of the serving",
+                },
+              },
+              required: ["savedMealId", "foodId", "servingId", "quantity"],
+            },
+          },
+          {
+            name: "delete_saved_meal_item",
+            description: "Remove a food item from a saved meal",
+            inputSchema: {
+              type: "object",
+              properties: {
+                savedMealItemId: {
+                  type: "string",
+                  description: "The saved_meal_item_id to remove",
+                },
+              },
+              required: ["savedMealItemId"],
+            },
+          },
+          // Priority 4: Weight, barcode, autocomplete
+          {
+            name: "update_weight",
+            description: "Record the user's weight for a specific date (date must be within 2 days of today)",
+            inputSchema: {
+              type: "object",
+              properties: {
+                currentWeightKg: {
+                  type: "number",
+                  description: "Current weight in kilograms",
+                },
+                date: {
+                  type: "string",
+                  description: "Date in YYYY-MM-DD format (default: today, must be within 2 days of today)",
+                },
+                comment: {
+                  type: "string",
+                  description: "Optional comment for the weight entry",
+                },
+              },
+              required: ["currentWeightKg"],
+            },
+          },
+          {
+            name: "barcode_search",
+            description: "Search for a food by barcode (EAN/UPC 13-digit GTIN)",
+            inputSchema: {
+              type: "object",
+              properties: {
+                barcode: {
+                  type: "string",
+                  description: "13-digit GTIN barcode number",
+                },
+              },
+              required: ["barcode"],
+            },
+          },
+          {
+            name: "autocomplete_foods",
+            description: "Get food name suggestions as you type (max 10 results)",
+            inputSchema: {
+              type: "object",
+              properties: {
+                expression: {
+                  type: "string",
+                  description: "Partial food name to autocomplete",
+                },
+              },
+              required: ["expression"],
+            },
+          },
         ],
       };
     });
@@ -576,6 +835,44 @@ class FatSecretMCPServer {
           return await this.handleCheckAuthStatus(request.params.arguments);
         case "get_weight_month":
           return await this.handleGetWeightMonth(request.params.arguments);
+        // Priority 1
+        case "edit_food_entry":
+          return await this.handleEditFoodEntry(request.params.arguments);
+        case "delete_food_entry":
+          return await this.handleDeleteFoodEntry(request.params.arguments);
+        case "get_food_entries_month":
+          return await this.handleGetFoodEntriesMonth(request.params.arguments);
+        // Priority 2
+        case "get_most_eaten":
+          return await this.handleGetMostEaten(request.params.arguments);
+        case "get_recently_eaten":
+          return await this.handleGetRecentlyEaten(request.params.arguments);
+        case "get_favorites":
+          return await this.handleGetFavorites(request.params.arguments);
+        case "add_favorite":
+          return await this.handleAddFavorite(request.params.arguments);
+        case "delete_favorite":
+          return await this.handleDeleteFavorite(request.params.arguments);
+        // Priority 3
+        case "get_saved_meals":
+          return await this.handleGetSavedMeals(request.params.arguments);
+        case "create_saved_meal":
+          return await this.handleCreateSavedMeal(request.params.arguments);
+        case "delete_saved_meal":
+          return await this.handleDeleteSavedMeal(request.params.arguments);
+        case "get_saved_meal_items":
+          return await this.handleGetSavedMealItems(request.params.arguments);
+        case "add_saved_meal_item":
+          return await this.handleAddSavedMealItem(request.params.arguments);
+        case "delete_saved_meal_item":
+          return await this.handleDeleteSavedMealItem(request.params.arguments);
+        // Priority 4
+        case "update_weight":
+          return await this.handleUpdateWeight(request.params.arguments);
+        case "barcode_search":
+          return await this.handleBarcodeSearch(request.params.arguments);
+        case "autocomplete_foods":
+          return await this.handleAutocompleteFoods(request.params.arguments);
         default:
           throw new McpError(
             ErrorCode.MethodNotFound,
@@ -999,6 +1296,705 @@ class FatSecretMCPServer {
         },
       ],
     };
+  }
+
+  // === Priority 1: Diary edit/delete/month ===
+
+  private async handleEditFoodEntry(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params: Record<string, string> = {
+        method: "food_entry.edit",
+        food_entry_id: args.foodEntryId,
+        format: "json",
+      };
+
+      if (args.servingId) params.serving_id = args.servingId;
+      if (args.quantity !== undefined) params.number_of_units = args.quantity.toString();
+      if (args.mealType) params.meal = args.mealType;
+
+      const response = await this.makeApiRequest(
+        "POST",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Food entry updated successfully!\n\n${JSON.stringify(response, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to edit food entry: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleDeleteFoodEntry(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "food_entry.delete",
+        food_entry_id: args.foodEntryId,
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "POST",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Food entry deleted successfully!\n\n${JSON.stringify(response, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to delete food entry: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleGetFoodEntriesMonth(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const date = this.dateToFatSecretFormat(args.date);
+      const params = {
+        method: "food_entries.get_month",
+        date: date,
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "GET",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(response, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to get food entries for month: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  // === Priority 2: Search helpers and favorites ===
+
+  private async handleGetMostEaten(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "foods.get_most_eaten",
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "GET",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(response, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to get most eaten foods: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleGetRecentlyEaten(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "foods.get_recently_eaten",
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "GET",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(response, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to get recently eaten foods: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleGetFavorites(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "foods.get_favorites",
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "GET",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(response, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to get favorite foods: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleAddFavorite(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "food.add_favorite",
+        food_id: args.foodId,
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "POST",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Food added to favorites!\n\n${JSON.stringify(response, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to add favorite: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleDeleteFavorite(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "food.delete_favorite",
+        food_id: args.foodId,
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "POST",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Food removed from favorites!\n\n${JSON.stringify(response, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to delete favorite: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  // === Priority 3: Saved meals ===
+
+  private async handleGetSavedMeals(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "saved_meals.get",
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "GET",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(response, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to get saved meals: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleCreateSavedMeal(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params: Record<string, string> = {
+        method: "saved_meal.create",
+        saved_meal_name: args.savedMealName,
+        format: "json",
+      };
+
+      if (args.savedMealDescription) params.saved_meal_description = args.savedMealDescription;
+      if (args.mealType) params.meal = args.mealType;
+
+      const response = await this.makeApiRequest(
+        "POST",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Saved meal created!\n\n${JSON.stringify(response, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to create saved meal: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleDeleteSavedMeal(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "saved_meal.delete",
+        saved_meal_id: args.savedMealId,
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "POST",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Saved meal deleted!\n\n${JSON.stringify(response, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to delete saved meal: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleGetSavedMealItems(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "saved_meal_items.get",
+        saved_meal_id: args.savedMealId,
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "GET",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(response, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to get saved meal items: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleAddSavedMealItem(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "saved_meal_item.add",
+        saved_meal_id: args.savedMealId,
+        food_id: args.foodId,
+        serving_id: args.servingId,
+        number_of_units: args.quantity.toString(),
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "POST",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Item added to saved meal!\n\n${JSON.stringify(response, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to add saved meal item: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleDeleteSavedMealItem(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const params = {
+        method: "saved_meal_item.delete",
+        saved_meal_item_id: args.savedMealItemId,
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "POST",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Item removed from saved meal!\n\n${JSON.stringify(response, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to delete saved meal item: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  // === Priority 4: Weight update, barcode, autocomplete ===
+
+  private async handleUpdateWeight(args: any) {
+    if (!this.config.accessToken || !this.config.accessTokenSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "User authentication required. Please complete the OAuth flow first.",
+      );
+    }
+
+    try {
+      const date = this.dateToFatSecretFormat(args.date);
+      const params: Record<string, string> = {
+        method: "weight.update",
+        current_weight_kg: args.currentWeightKg.toString(),
+        date: date,
+        format: "json",
+      };
+
+      if (args.comment) params.comment = args.comment;
+
+      const response = await this.makeApiRequest(
+        "POST",
+        this.baseUrl,
+        params,
+        true,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Weight recorded successfully!\n\n${JSON.stringify(response, null, 2)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to update weight: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleBarcodeSearch(args: any) {
+    if (!this.config.clientId || !this.config.clientSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "Please set your FatSecret API credentials first",
+      );
+    }
+
+    try {
+      const params = {
+        method: "food.find_id_for_barcode",
+        barcode: args.barcode,
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "GET",
+        this.baseUrl,
+        params,
+        false,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(response, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to search by barcode: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
+  }
+
+  private async handleAutocompleteFoods(args: any) {
+    if (!this.config.clientId || !this.config.clientSecret) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "Please set your FatSecret API credentials first",
+      );
+    }
+
+    try {
+      const params = {
+        method: "foods.autocomplete",
+        expression: args.expression,
+        format: "json",
+      };
+
+      const response = await this.makeApiRequest(
+        "GET",
+        this.baseUrl,
+        params,
+        false,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(response, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to autocomplete foods: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
+    }
   }
 
   private async handleGetWeightMonth(args: any) {
